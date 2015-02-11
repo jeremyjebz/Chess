@@ -13,13 +13,15 @@ public class chess {
 	public static Piece bQueen = new Piece(true, "bQueen");
 	public static Piece bBishop = new Piece(true, "bBishop");
 	public static Piece bKnight = new Piece(true, "bKnight");
-	public static Piece bRook = new Piece(true, "bRook");
+	public static Piece blRook = new Piece(true, "bRook");
+	public static Piece brRook = new Piece(true, "bRook");
 	public static Piece bPawn = new Piece(true, "bPawn");
 	public static Piece wKing = new Piece(false, "wKing");
 	public static Piece wQueen = new Piece(false, "wQueen");
 	public static Piece wBishop = new Piece(false, "wBishop");
 	public static Piece wKnight = new Piece(false, "wKnight");
-	public static Piece wRook = new Piece(false, "wRook");
+	public static Piece wlRook = new Piece(false, "wRook");
+	public static Piece wrRook = new Piece(false, "wRook");
 	public static Piece wPawn = new Piece(false, "wPawn");
 	
 	public static String output = "";
@@ -45,11 +47,13 @@ public class chess {
 		Boolean black;
 		String type;
 		Boolean moved;		
+		String startPosition;
 
 		public Piece(Boolean black, String type) {
 			this.black = black;
 			this.type = type;
 			this.moved = false;
+			this.startPosition = "";
 		}
 	}
 	
@@ -77,7 +81,13 @@ public class chess {
 			for (int j = 0; j < 8; j++) {
 				if (i == 0) {
 					if (j == 0 || j == 7) {
-						board[i][j] = bRook;
+						if (j == 0) {
+							board[i][j] = blRook;
+							board[i][j].startPosition = "topLeft";
+						} else if (j == 7) {
+							board[i][j] = brRook;
+							board[i][j].startPosition = "topRight";
+						} 
 					} else if (j == 1 || j == 6) {
 						board[i][j] = bKnight;
 					} else if (j == 2 || j == 5) {
@@ -93,7 +103,13 @@ public class chess {
 					board[i][j] = wPawn;
 				} else if (i == 7) {
 					if (j == 0 || j == 7) {
-						board[i][j] = wRook;
+						if (j == 0) {
+							board[i][j] = wlRook;
+							board[i][j].startPosition = "bottomLeft";
+						} else  if (j == 7) {
+							board[i][j] = wrRook;
+							board[i][j].startPosition = "bottomRight";
+						}
 					} else if (j == 1 || j == 6) {
 						board[i][j] = wKnight;
 					} else if (j == 2 || j == 5) {
@@ -384,10 +400,11 @@ public class chess {
 						// This is inserted in the case where it's a castle, so we don't remove
 						if (firstPiece.black != secondPiece.black) {
 							board[firstRow][firstCol] = empty;
+							board[secondRow][secondCol] = firstPiece;
 						} else {
-							board[firstRow][firstCol] = secondPiece;
+							// I don't want to do anything I don't think...
+							// board[firstRow][firstCol] = secondPiece;
 						}
-						board[secondRow][secondCol] = firstPiece;
 						
 						a1.setIcon(new ImageIcon("chess images\\" + board[0][0].type + ".png"));
 						b1.setIcon(new ImageIcon("chess images\\" + board[1][0].type + ".png"));
@@ -552,21 +569,102 @@ public class chess {
 			return false;
 		}
 		
-		// **************** CASTLE *******************
+		// **************** CASTLE CHECK *******************
 		if ((firstPiece.type == "bRook" && secondPiece.type == "bKing") || (firstPiece.type == "wRook" && 
 		secondPiece.type == "wKing")) {
+			// System.out.println(firstPiece == board[0][0]);
 			if (firstPiece.moved == false && secondPiece.moved == false) {
-				firstPiece.moved = true;
-				secondPiece.moved = true;
-				return true;
+				if (firstPiece.startPosition.equals("topLeft")) {
+					if (board[0][1].type == "*" && board[0][2].type == "*" && board[0][3].type == "*") 
+					{
+						firstPiece.moved = true;
+						secondPiece.moved = true;
+						board[0][2] = firstPiece;
+						board[0][1] = secondPiece;
+						board[0][0] = empty;
+						board[0][4] = empty;
+						return true;
+					}
+				} else if (firstPiece.startPosition == "topRight") {
+					if (board[0][6].type == "*" && board[0][5].type == "*") {
+						firstPiece.moved = true;
+						secondPiece.moved = true;
+						board[0][5] = firstPiece;
+						board[0][6] = secondPiece;
+						board[0][7] = empty;
+						board[0][4] = empty;
+						return true;
+					}
+				} else if (firstPiece.startPosition == "bottomLeft") {
+					if (board[7][1].type == "*" && board[7][2].type == "*" && board[7][3].type == "*") 
+					{
+						firstPiece.moved = true;
+						secondPiece.moved = true;
+						board[7][2] = firstPiece;
+						board[7][1] = secondPiece;
+						board[7][0] = empty;
+						board[7][4] = empty;
+						return true;
+					}
+				} else if (firstPiece.startPosition == "bottomRight") {
+					if (board[7][6].type == "*" && board[7][5].type == "*") {
+						firstPiece.moved = true;
+						secondPiece.moved = true;
+						board[7][5] = firstPiece;
+						board[7][6] = secondPiece;
+						board[7][7] = empty;
+						board[7][4] = empty;
+						return true;
+					}
+				}
 			}
 		}
 		if ((firstPiece.type == "bKing" && secondPiece.type == "bRook") || (firstPiece.type == "wKing" && 
 		secondPiece.type == "wRook")) {
 			if (firstPiece.moved == false && secondPiece.moved == false) {
-				firstPiece.moved = true;
-				secondPiece.moved = true;
-				return true;
+				if (secondPiece.startPosition == "topLeft") {
+					if (board[0][1].type == "*" && board[0][2].type == "*" && board[0][3].type == "*") 
+					{
+						firstPiece.moved = true;
+						secondPiece.moved = true;
+						board[0][1] = firstPiece;
+						board[0][2] = secondPiece;
+						board[0][0] = empty;
+						board[0][4] = empty;
+						return true;
+					}
+				} else if (secondPiece.startPosition == "topRight") {
+					if (board[0][6].type == "*" && board[0][5].type == "*") {
+						firstPiece.moved = true;
+						secondPiece.moved = true;
+						board[0][6] = firstPiece;
+						board[0][5] = secondPiece;
+						board[0][7] = empty;
+						board[0][4] = empty;
+						return true;
+					}
+				} else if (secondPiece.startPosition == "bottomLeft") {
+					if (board[7][1].type == "*" && board[7][2].type == "*" && board[7][3].type == "*") 
+					{
+						firstPiece.moved = true;
+						secondPiece.moved = true;
+						board[7][1] = firstPiece;
+						board[7][2] = secondPiece;
+						board[7][0] = empty;
+						board[7][4] = empty;
+						return true;
+					}
+				} else if (secondPiece.startPosition == "bottomRight") {
+					if (board[7][6].type == "*" && board[7][5].type == "*") {
+						firstPiece.moved = true;
+						secondPiece.moved = true;
+						board[7][6] = firstPiece;
+						board[7][5] = secondPiece;
+						board[7][7] = empty;
+						board[7][4] = empty;
+						return true;
+					}
+				}
 			}
 		}
 		
